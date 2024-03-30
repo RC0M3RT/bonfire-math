@@ -7,6 +7,7 @@ target_link_libraries(catch_main PUBLIC Catch2::Catch2 Catch2::Catch2WithMain)
 
 SET(UNITTEST_SOURCES
     "math/vector3.cpp"
+    "math/matrix3.cpp"
 )
 
 add_executable(unittests  ${UNITTEST_SOURCES})

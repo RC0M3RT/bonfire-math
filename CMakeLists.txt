@@ -11,13 +11,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project(
   BonfireMath
   VERSION 0.0.1
-  DESCRIPTION ""
-  HOMEPAGE_URL "%%myurl%%"
-  LANGUAGES CXX C)
+  LANGUAGES CXX)
 
 find_package(glfw3 CONFIG REQUIRED)
+find_package(glew CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 
 add_subdirectory(math)
+add_subdirectory(app)
 add_subdirectory(test)
 
