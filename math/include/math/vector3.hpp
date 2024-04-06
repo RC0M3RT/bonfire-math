@@ -2,12 +2,17 @@
 
 #include <type_traits>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+
 namespace bonfire::math {
 
 namespace detail {
 
-template<typename T> requires std::is_floating_point_v<T>
+template<typename T>
+  // requires std::is_floating_point_v<T>
 struct Vector3 {
+  static_assert(std::is_floating_point_v<T> && "T must be a floating point type");
   T x, y, z;
 
   constexpr Vector3() noexcept : x{0}, y{0}, z{0} {}
@@ -21,12 +26,12 @@ struct Vector3 {
     return x == other.x && y == other.y && z == other.z;
   }
 
-  constexpr auto operator[](std::size_t i) noexcept -> T& { 
-    return (&x)[i];
+  constexpr auto elem(std::size_t elem_index) noexcept -> T& { 
+    return (&x)[elem_index];
   }
 
-  constexpr auto operator[](std::size_t i) const noexcept -> const T& { 
-    return (&x)[i];
+  constexpr auto elem(std::size_t elem_index) const noexcept -> const T& { 
+    return (&x)[elem_index];
   }
 
   constexpr auto operator=(const Vector3<T>& other) noexcept -> Vector3<T>& {
@@ -113,4 +118,6 @@ constexpr auto normalize(const detail::Vector3<T>& vec) noexcept -> detail::Vect
 using Vec3 = detail::Vector3<float>;
 
 }	// namespace bonfire::math
+
+#pragma clang diagnostic pop
 
