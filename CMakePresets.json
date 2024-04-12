@@ -8,8 +8,8 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang.exe",
-        "CMAKE_CXX_COMPILER": "clang++.exe",
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_TOOLCHAIN_FILE": {
           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
           "type": "FILEPATH"
@@ -19,11 +19,6 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "windows-clang-x64"
-        }
       }
     },
     {

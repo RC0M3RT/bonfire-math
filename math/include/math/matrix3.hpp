@@ -5,7 +5,8 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 
-namespace bonfire::math {
+namespace bonfire {
+namespace math {
 
 namespace detail {
 
@@ -146,7 +147,8 @@ constexpr auto operator*(const Matrix3<T>& m, const Vector3<T>& v) noexcept -> V
 
 using Mat3 = detail::Matrix3<float>;
 
-}	// namespace bonfire::math
+} // namespace math
+}	// namespace bonfire
 
 #pragma clang diagnostic pop
 

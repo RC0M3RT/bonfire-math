@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <cmath>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
@@ -9,10 +10,9 @@ namespace bonfire::math {
 
 namespace detail {
 
-template<typename T>
-  // requires std::is_floating_point_v<T>
+template<typename T> requires std::is_floating_point_v<T>
 struct Vector3 {
-  static_assert(std::is_floating_point_v<T> && "T must be a floating point type");
+  // static_assert(std::is_floating_point_v<T> && "T must be a floating point type");
   T x, y, z;
 
   constexpr Vector3() noexcept : x{0}, y{0}, z{0} {}
@@ -115,9 +115,50 @@ constexpr auto normalize(const detail::Vector3<T>& vec) noexcept -> detail::Vect
   return detail::Vector3<T>{vec / magnitude(vec)};
 }
 
+template<typename T>
+constexpr auto rotate_x(const detail::Vector3<T>& vec, const T angle) noexcept -> detail::Vector3<T> {
+  return detail::Vector3<T>{
+    vec.x, // x
+    vec.y * std::cos(angle) - vec.z * std::sin(angle), // y
+    vec.y * std::sin(angle) + vec.z * std::cos(angle) // z
+  };
+}
+
+template<typename T>
+constexpr auto rotate_y(const detail::Vector3<T>& vec, const T angle) noexcept -> detail::Vector3<T> {
+  return detail::Vector3<T>{
+    vec.x * std::cos(angle) - vec.z * std::sin(angle), // x
+    vec.y, // y
+    vec.x * std::sin(angle) + vec.z * std::cos(angle) // z
+  };
+}
+
+template<typename T>
+constexpr auto rotate_z(const detail::Vector3<T>& vec, const T angle) noexcept -> detail::Vector3<T> {
+  return detail::Vector3<T>{
+    vec.x * std::cos(angle) - vec.y * std::sin(angle), // x
+    vec.x * std::sin(angle) + vec.y * std::cos(angle), // y
+    vec.z // z
+  };
+}
+
+template<typename T>
+constexpr auto cross_product(const detail::Vector3<T>& vec1, const detail::Vector3<T>& vec2) noexcept -> detail::Vector3<T> {
+  return detail::Vector3<T>{
+    vec1.y * vec2.z - vec1.z * vec2.y,
+    vec1.z * vec2.x - vec1.x * vec2.z,
+    vec1.x * vec2.y - vec1.y * vec2.x
+  };
+}
+
+template<typename T>
+constexpr auto dot_product(const detail::Vector3<T>& vec1, const detail::Vector3<T>& vec2) noexcept -> T {
+  return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
+}
+
 using Vec3 = detail::Vector3<float>;
 
-}	// namespace bonfire::math
+} // namespace bonfire::math
 
 #pragma clang diagnostic pop
 

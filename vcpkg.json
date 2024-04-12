@@ -19,6 +19,10 @@
     {
       "name": "sdl2",
       "version>=": "2.30.1"
+    },
+    {
+      "name": "tinyobjloader",
+      "version>=": "2.0.0-rc9"
     }
   ],
   "builtin-baseline": "a34c873a9717a888f58dc05268dea15592c2f0ff",
