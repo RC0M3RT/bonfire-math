@@ -3,9 +3,6 @@
 #include <type_traits>
 #include <cmath>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-
 namespace bonfire::math {
 
 namespace detail {
@@ -150,6 +147,4 @@ constexpr auto dot_product(const detail::Vector3<T>& vec1, const detail::Vector3
 using Vec3 = detail::Vector3<float>;
 
 } // namespace bonfire::math
-
-#pragma clang diagnostic pop
 

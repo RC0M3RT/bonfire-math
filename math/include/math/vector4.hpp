@@ -5,9 +5,6 @@
 
 #include "vector3.hpp"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-
 namespace bonfire::math {
 
 namespace detail {
@@ -119,6 +116,4 @@ constexpr auto normalize(const detail::Vector4<T>& vec) noexcept -> detail::Vect
 using Vec4 = detail::Vector4<float>;
 
 } // namespace bonfire::math
-
-#pragma clang diagnostic pop
 

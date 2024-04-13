@@ -49,7 +49,7 @@ public:
   void add_entity(Entity&& entity) {
     RenderData rd {};
     rd.triangles.reserve(entity.drawable.indices.size() / 3);
-    render_datas_.push_back(std::move(rd));
+    render_datas_.emplace_back(std::move(rd));
     entities_.emplace_back(std::move(entity));
   }
 
@@ -170,7 +170,7 @@ private:
 
         if (options_.render_wireframe) {
           // wireframe
-          canvas_.draw_triangle(tri.points[0].x, tri.points[0].y, tri.points[1].x, tri.points[1].y, tri.points[2].x, tri.points[2].y, 0xFF666666);
+          canvas_.draw_triangle(tri.points[0].x, tri.points[0].y, tri.points[1].x, tri.points[1].y, tri.points[2].x, tri.points[2].y, 0xFFFFFFFF);
         }
 
         if (options_.render_vertex_points) {
@@ -252,4 +252,4 @@ private:
   bool is_running_;
 };
 
-}	// namespace swr
+} // namespace swr
