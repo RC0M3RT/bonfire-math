@@ -7,7 +7,7 @@
 namespace swr {
 
 struct TransformComponent {
-  bonfire::math::Vec3 position{};
+  bonfire::math::Vec3 position{0.f};
   bonfire::math::Vec3 rotation{};
   bonfire::math::Vec3 scale{1.0f};
 };

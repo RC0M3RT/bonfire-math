@@ -22,6 +22,12 @@ struct Vector4 {
   constexpr Vector4(const Vector4<T>& other) noexcept : x{other.x}, y{other.y}, z{other.z}, w{other.w} {}
   constexpr Vector4(Vector4<T>&& other) noexcept : x{other.x}, y{other.y}, z{other.z}, w{other.w} {}
 
+  constexpr auto to_vec3() const noexcept -> Vector3<T> {
+    return Vector3<T> {
+      x, y, z
+    };
+  }
+
   constexpr auto operator==(const Vector4<T>& other) const noexcept -> bool {
     return x == other.x && y == other.y && z == other.z && w == other.w;
   }

@@ -40,6 +40,15 @@ struct Matrix4 {
    */
   constexpr explicit Matrix4(const Vector4<T>& v0, const Vector4<T>& v1, const Vector4<T>& v2, const Vector4<T>& v3) noexcept : mat_{v0, v1, v2, v3} {}
 
+  constexpr static auto identity() -> Matrix4<T> {
+    return Matrix4<T>{
+      T{1.0f}, T{0.0f}, T{0.0f}, T{0.0f},
+      T{0.0f}, T{1.0f}, T{0.0f}, T{0.0f},
+      T{0.0f}, T{0.0f}, T{1.0f}, T{0.0f},
+      T{0.0f}, T{0.0f}, T{0.0f}, T{1.0f}
+    };
+  }
+
   constexpr auto operator==(const Matrix4<T>& other) const noexcept -> bool {
     return mat_[0] == other.mat_[0] && mat_[1] == other.mat_[1] && mat_[2] == other.mat_[2] && mat_[3] == other.mat_[3];
   }

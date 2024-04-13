@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <math/vector2.hpp>
+#include <math/transformation.hpp>
 
 #include "canvas.hpp"
 #include "context.hpp"
@@ -127,30 +128,66 @@ private:
       const auto& indices = entities_[entity_idx].drawable.indices;
       const auto& transform = entities_[entity_idx].transform;
 
-      for (std::size_t i = 0; i < indices.size();) {
-        const auto& vertex0 = vertices[indices[i++]];
-        const auto& vertex1 = vertices[indices[i++]];
-        const auto& vertex2 = vertices[indices[i++]];
+      auto scale_matrix = bm::Mat4::identity();
+      bm::make_scale(scale_matrix, transform.scale);
 
-        // transform vertices
-        const auto transformed_vertex0 = transform_vertex(vertex0, transform);
-        const auto transformed_vertex1 = transform_vertex(vertex1, transform);
-        const auto transformed_vertex2 = transform_vertex(vertex2, transform);
+      auto translation_matrix = bm::Mat4::identity();
+      bm::make_translate(translation_matrix, transform.position);
+
+      auto rotation_matrix_x = bm::Mat4::identity();
+      bm::make_rotate_x(rotation_matrix_x, transform.rotation.x);
+
+      auto rotation_matrix_y = bm::Mat4::identity();
+      bm::make_rotate_y(rotation_matrix_y, transform.rotation.y);
+
+      auto rotation_matrix_z = bm::Mat4::identity();
+      bm::make_rotate_z(rotation_matrix_z, transform.rotation.z);
+
+      for (std::size_t i = 0; i < indices.size();) {
+        auto vertex0 = vertices[indices[i++]];
+        auto vertex1 = vertices[indices[i++]];
+        auto vertex2 = vertices[indices[i++]];
+
+        // SCALE VERTICES
+        vertex0 = (scale_matrix * bm::Vec4(vertex0, 1.0f)).to_vec3();
+        vertex1 = (scale_matrix * bm::Vec4(vertex1, 1.0f)).to_vec3();
+        vertex2 = (scale_matrix * bm::Vec4(vertex2, 1.0f)).to_vec3();
+
+        // ROTATE VERTICES
+        // rotate around x
+        vertex0 = (rotation_matrix_x * bm::Vec4(vertex0, 1.0f)).to_vec3();
+        vertex1 = (rotation_matrix_x * bm::Vec4(vertex1, 1.0f)).to_vec3();
+        vertex2 = (rotation_matrix_x * bm::Vec4(vertex2, 1.0f)).to_vec3();
+
+        // rotate around y
+        vertex0 = (rotation_matrix_y * bm::Vec4(vertex0, 1.0f)).to_vec3();
+        vertex1 = (rotation_matrix_y * bm::Vec4(vertex1, 1.0f)).to_vec3();
+        vertex2 = (rotation_matrix_y * bm::Vec4(vertex2, 1.0f)).to_vec3();
+
+        // rotate around z
+        vertex0 = (rotation_matrix_z * bm::Vec4(vertex0, 1.0f)).to_vec3();
+        vertex1 = (rotation_matrix_z * bm::Vec4(vertex1, 1.0f)).to_vec3();
+        vertex2 = (rotation_matrix_z * bm::Vec4(vertex2, 1.0f)).to_vec3();
+
+        // TRANSLATE VERTICES
+        vertex0 = (translation_matrix * bm::Vec4(vertex0, 1.0f)).to_vec3();
+        vertex1 = (translation_matrix * bm::Vec4(vertex1, 1.0f)).to_vec3();
+        vertex2 = (translation_matrix * bm::Vec4(vertex2, 1.0f)).to_vec3();
 
         // back face culling
-        if (options_.enable_back_face_culling && should_render_triangle(transformed_vertex0, transformed_vertex1, transformed_vertex2)) {
+        if (options_.enable_back_face_culling && should_render_triangle(vertex0, vertex1, vertex2)) {
           continue;
         }
 
         // project vertices
-        const auto projected_vertex0 = project(transformed_vertex0);
-        const auto projected_vertex1 = project(transformed_vertex1);
-        const auto projected_vertex2 = project(transformed_vertex2);
+        const auto projected_vertex0 = project(vertex0);
+        const auto projected_vertex1 = project(vertex1);
+        const auto projected_vertex2 = project(vertex2);
 
         render_data.triangles.push_back(
           Triangle{
             .points = { projected_vertex0, projected_vertex1, projected_vertex2 },
-            .avg_depth = (transformed_vertex0.z + transformed_vertex1.z + transformed_vertex2.z) / 3.0f
+            .avg_depth = (vertex0.z + vertex1.z + vertex2.z) / 3.0f
           }
         );
       }
@@ -195,8 +232,8 @@ private:
     processed_vertex = bm::rotate_y(processed_vertex, tr.rotation.y);
     processed_vertex = bm::rotate_z(processed_vertex, tr.rotation.z);
 
-    // translate
-    processed_vertex += tr.position;
+    // // translate
+    // processed_vertex += tr.position;
 
     return processed_vertex;
   }

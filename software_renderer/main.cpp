@@ -90,13 +90,14 @@ int main() {
   swr::Entity e{};
   e.drawable = load_model();
   e.transform.position.z = -5;
+  e.transform.scale = bm::Vec3{1.5f, 1.5f, 1.5f};
 
   std::cout << "is: " << e.drawable.indices.size() << ", vs: " << e.drawable.vertices.size() << std::endl;
 
   e.update_transform = [](swr::TransformComponent& tr) {
-    tr.rotation.x += 0.001f;
+    // tr.rotation.x += 0.001f;
     // tr.rotation.y += 0.001f;
-    // tr.rotation.z += 0.001f;
+    tr.rotation.z += 0.001f;
   };
 
   renderer.add_entity(std::move(e));
