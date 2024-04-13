@@ -11,7 +11,6 @@ namespace detail {
 
 template<typename T> requires std::is_floating_point_v<T>
 struct Vector2 {
-  // static_assert(std::is_floating_point_v<T> && "T must be a floating point type");
   T x, y;
 
   constexpr Vector2() noexcept : x{0}, y{0} {}
@@ -23,14 +22,6 @@ struct Vector2 {
 
   constexpr auto operator==(const Vector2<T>& other) const noexcept -> bool {
     return x == other.x && y == other.y;
-  }
-
-  constexpr auto elem(std::size_t elem_index) noexcept -> T& { 
-    return (&x)[elem_index];
-  }
-
-  constexpr auto elem(std::size_t elem_index) const noexcept -> const T& { 
-    return (&x)[elem_index];
   }
 
   constexpr auto operator=(const Vector2<T>& other) noexcept -> Vector2<T>& {
@@ -69,6 +60,9 @@ struct Vector2 {
     return *this;
   }
 
+  constexpr auto magnitude() const noexcept -> T {
+    return T{std::sqrt(x * x + y * y)};
+  }
 };
 
 template<typename T>

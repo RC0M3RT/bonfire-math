@@ -29,14 +29,6 @@ struct Vector4 {
     return x == other.x && y == other.y && z == other.z && w == other.w;
   }
 
-  constexpr auto elem(std::size_t elem_index) noexcept -> T& {
-    return (&x)[elem_index];
-  }
-
-  constexpr auto elem(std::size_t elem_index) const noexcept -> const T& {
-    return (&x)[elem_index];
-  }
-
   constexpr auto operator=(const Vector4<T>& other) noexcept -> Vector4<T>& {
     x = other.x;
     y = other.y;

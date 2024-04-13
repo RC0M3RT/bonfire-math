@@ -181,7 +181,6 @@ private:
       }
     }
 
-
     copy_color_buffer();
     SDL_RenderPresent(context_.renderer);
 

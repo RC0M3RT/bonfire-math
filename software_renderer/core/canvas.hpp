@@ -9,17 +9,13 @@ using ColorBuffer = std::vector<std::uint32_t>;
 
 class Canvas {
  public:
-  explicit Canvas(int width, int height) : width_(width), height_(height), color_buffer_(width * height) {}
+  explicit Canvas(const int width, const int height) : width_(width), height_(height), color_buffer_(width * height) {}
 
   [[nodiscard]] auto get_color_buffer() const -> const ColorBuffer& { return color_buffer_; }
 
-  [[nodiscard]] auto get_width() const noexcept -> int {
-    return width_;
-  }
+  [[nodiscard]] auto get_width() const noexcept -> int { return width_; }
 
-  [[nodiscard]] auto get_height() const noexcept -> int {
-    return height_;
-  }
+  [[nodiscard]] auto get_height() const noexcept -> int { return height_; }
 
   void clear_color(const std::uint32_t color) {
     for (std::size_t y = 0; y < height_; y++) {
@@ -39,7 +35,13 @@ class Canvas {
     }
   }
 
-  void draw_rectangle(std::size_t posx, std::size_t posy, std::size_t width, std::size_t height, std::uint32_t color) {
+  template <typename T, typename V>
+  constexpr void draw_rectangle(const T posx, const T posy, const V width, const V height, const std::uint32_t color) {
+    draw_rectangle(static_cast<int>(posx), static_cast<int>(posy), static_cast<int>(width), static_cast<int>(height),
+                   color);
+  }
+
+  void draw_rectangle(const int posx, const int posy, const int width, const int height, const std::uint32_t color) {
     for (std::size_t y = posy; y < posy + height; y++) {
       for (std::size_t x = posx; x < posx + width; x++) {
         color_buffer_[(width_ * y) + x] = color;
@@ -52,7 +54,7 @@ class Canvas {
   void draw_line(const int x0, const int y0, const int x1, const int y1, const std::uint32_t color) {
     // DDA line drawing algo
     const auto delta_x = x1 - x0;
-    const auto delta_y = y1 - y0;
+    const int delta_y = y1 - y0;
 
     const auto side_len = std::abs(delta_x) >= std::abs(delta_y) ? std::abs(delta_x) : std::abs(delta_y);
 
@@ -70,13 +72,27 @@ class Canvas {
     }
   }
 
-  void draw_triangle(const int x0, const int y0, const int x1, const int y1, const int x2, const int y2, const std::uint32_t color) {
+  template <typename T>
+  constexpr void draw_triangle(T x0, T y0, T x1, T y1, T x2, T y2, const std::uint32_t color) {
+    draw_triangle(static_cast<int>(x0), static_cast<int>(y0), static_cast<int>(x1), static_cast<int>(y1),
+                  static_cast<int>(x2), static_cast<int>(y2), color);
+  }
+
+  void draw_triangle(const int x0, const int y0, const int x1, const int y1, const int x2,
+                     const int y2, const std::uint32_t color) {
     draw_line(x0, y0, x1, y1, color);
     draw_line(x1, y1, x2, y2, color);
     draw_line(x2, y2, x0, y0, color);
   }
 
-  void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, const std::uint32_t color) {
+  template <typename T>
+  constexpr void draw_filled_triangle(T x0, T y0, T x1, T y1, T x2, T y2, const std::uint32_t color) {
+    draw_filled_triangle(static_cast<int>(x0), static_cast<int>(y0), static_cast<int>(x1), static_cast<int>(y1),
+                         static_cast<int>(x2), static_cast<int>(y2), color);
+  }
+
+  void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2,
+                            const std::uint32_t color) {
     // apply flat bottom, flat top technique
     // sort the vertices by y component ascending y0 < y1 < y2
     if (y0 > y1) {
@@ -118,8 +134,9 @@ class Canvas {
   // triangle midpoint, my = y1,  mx - x0 / x2 - x0 = y1 - y0 / y2 - y0
   // mx =  (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;  => triangle similarity
 
-private:
-  void draw_flat_bottom_triangle(const int x0, const int y0, const int x1, const int y1, const int mx, const int my, const std::uint32_t color) {
+ private:
+  void draw_flat_bottom_triangle(const int x0, const int y0, const int x1, const int y1, const int mx,
+                                 const int my, const std::uint32_t color) {
     // find the 2 inverted slopes
     const float inv_slope0 = static_cast<float>((x1 - x0)) / static_cast<float>((y1 - y0));
     const float inv_slope1 = static_cast<float>((mx - x0)) / static_cast<float>((my - y0));
@@ -134,10 +151,10 @@ private:
       x_start += inv_slope0;
       x_end += inv_slope1;
     }
-
   }
 
-  void draw_flat_top_triangle(const int x1, const int y1, const int mx, const int my, const int x2, const int y2, const std::uint32_t color) {
+  void draw_flat_top_triangle(const int x1, const int y1, const int mx, const int my, const int x2,
+                              const int y2, const std::uint32_t color) {
     // find the 2 inverted slopes
     const float inv_slope0 = static_cast<float>((x2 - x1)) / static_cast<float>((y2 - y1));
     const float inv_slope1 = static_cast<float>((x2 - mx)) / static_cast<float>((y2 - my));
@@ -153,6 +170,7 @@ private:
       x_end -= inv_slope1;
     }
   }
+
 private:
   int width_;
   int height_;

@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <math/matrix3.hpp>
-#include <math/print_helpers.hpp>
 
 #include <iostream>
 
@@ -11,17 +10,17 @@ TEST_CASE( "Zero initialize", "[Matrix3]" ) {
   bm::Mat3 m{};
   bm::Mat3 m2{};
 
-  REQUIRE(0.0f == m.column(0).elem(0));
-  REQUIRE(0.0f == m.column(0).elem(1));
-  REQUIRE(0.0f == m.column(0).elem(2));
+  REQUIRE(0.0f == m.column(0).x);
+  REQUIRE(0.0f == m.column(0).y);
+  REQUIRE(0.0f == m.column(0).z);
 
-  REQUIRE(0.0f == m.column(1).elem(0));
-  REQUIRE(0.0f == m.column(1).elem(1));
-  REQUIRE(0.0f == m.column(1).elem(2));
+  REQUIRE(0.0f == m.column(1).x);
+  REQUIRE(0.0f == m.column(1).y);
+  REQUIRE(0.0f == m.column(1).z);
 
-  REQUIRE(0.0f == m.column(2).elem(0));
-  REQUIRE(0.0f == m.column(2).elem(1));
-  REQUIRE(0.0f == m.column(2).elem(2));
+  REQUIRE(0.0f == m.column(2).x);
+  REQUIRE(0.0f == m.column(2).y);
+  REQUIRE(0.0f == m.column(2).z);
 
   REQUIRE(m == m2);
 }
@@ -30,17 +29,17 @@ TEST_CASE( "Value initialize", "[Matrix3]" ) {
   bm::Mat3 m{42.0f};
   bm::Mat3 m2{42.0f};
 
-  REQUIRE(42.0f == m.column(0).elem(0));
-  REQUIRE(42.0f == m.column(0).elem(1));
-  REQUIRE(42.0f == m.column(0).elem(2));
+  REQUIRE(42.0f == m.column(0).x);
+  REQUIRE(42.0f == m.column(0).y);
+  REQUIRE(42.0f == m.column(0).z);
 
-  REQUIRE(42.0f == m.column(1).elem(0));
-  REQUIRE(42.0f == m.column(1).elem(1));
-  REQUIRE(42.0f == m.column(1).elem(2));
+  REQUIRE(42.0f == m.column(1).x);
+  REQUIRE(42.0f == m.column(1).y);
+  REQUIRE(42.0f == m.column(1).z);
 
-  REQUIRE(42.0f == m.column(2).elem(0));
-  REQUIRE(42.0f == m.column(2).elem(1));
-  REQUIRE(42.0f == m.column(2).elem(2));
+  REQUIRE(42.0f == m.column(2).x);
+  REQUIRE(42.0f == m.column(2).y);
+  REQUIRE(42.0f == m.column(2).z);
 
   REQUIRE(m == m2);
 }
@@ -49,17 +48,17 @@ TEST_CASE( "Per member initialize", "[Matrix3]" ) {
   bm::Mat3 m{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f};
   bm::Mat3 m2{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f};
 
-  REQUIRE(1.0f == m.column(0).elem(0));
-  REQUIRE(2.0f == m.column(0).elem(1));
-  REQUIRE(3.0f == m.column(0).elem(2));
+  REQUIRE(1.0f == m.column(0).x);
+  REQUIRE(2.0f == m.column(0).y);
+  REQUIRE(3.0f == m.column(0).z);
 
-  REQUIRE(4.0f == m.column(1).elem(0));
-  REQUIRE(5.0f == m.column(1).elem(1));
-  REQUIRE(6.0f == m.column(1).elem(2));
+  REQUIRE(4.0f == m.column(1).x);
+  REQUIRE(5.0f == m.column(1).y);
+  REQUIRE(6.0f == m.column(1).z);
 
-  REQUIRE(7.0f == m.column(2).elem(0));
-  REQUIRE(8.0f == m.column(2).elem(1));
-  REQUIRE(9.0f == m.column(2).elem(2));
+  REQUIRE(7.0f == m.column(2).x);
+  REQUIRE(8.0f == m.column(2).y);
+  REQUIRE(9.0f == m.column(2).z);
 
   REQUIRE(m == m2);
 }
@@ -72,17 +71,17 @@ TEST_CASE( "From Vectors", "[Matrix3]" ) {
   bm::Mat3 m{v1, v2, v3};
   bm::Mat3 m2{v1, v2, v3};
 
-  REQUIRE(1.0f == m.column(0).elem(0));
-  REQUIRE(2.0f == m.column(0).elem(1));
-  REQUIRE(3.0f == m.column(0).elem(2));
+  REQUIRE(1.0f == m.column(0).x);
+  REQUIRE(2.0f == m.column(0).y);
+  REQUIRE(3.0f == m.column(0).z);
 
-  REQUIRE(4.0f == m.column(1).elem(0));
-  REQUIRE(5.0f == m.column(1).elem(1));
-  REQUIRE(6.0f == m.column(1).elem(2));
+  REQUIRE(4.0f == m.column(1).x);
+  REQUIRE(5.0f == m.column(1).y);
+  REQUIRE(6.0f == m.column(1).z);
 
-  REQUIRE(7.0f == m.column(2).elem(0));
-  REQUIRE(8.0f == m.column(2).elem(1));
-  REQUIRE(9.0f == m.column(2).elem(2));
+  REQUIRE(7.0f == m.column(2).x);
+  REQUIRE(8.0f == m.column(2).y);
+  REQUIRE(9.0f == m.column(2).z);
 
   REQUIRE(m == m2);
 }
@@ -128,9 +127,6 @@ TEST_CASE( "Multiplication", "[Matrix3]" ) {
 
   auto actual = m * m;
 
-  std::cout << bm::format(m) << std::endl;
-  std::cout << bm::format(actual, "R") << std::endl;
-
   REQUIRE(expected == actual);
 }
 
@@ -140,9 +136,6 @@ TEST_CASE( "Multiplication2", "[Matrix3]" ) {
   bm::Mat3 expected{30.0f, 66.0f, 102.f, 36.0f, 81.0f, 126.0f, 42.0f, 96.0f, 150.0f};
 
   auto actual = m * m;
-
-  std::cout << bm::format(m) << std::endl;
-  std::cout << bm::format(actual, "R") << std::endl;
 
   REQUIRE(expected == actual);
 }

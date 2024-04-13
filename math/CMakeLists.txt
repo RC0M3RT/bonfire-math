@@ -5,7 +5,6 @@ set(BonfireMath_HEADERS
 	"include/math/vector4.hpp"
 	"include/math/matrix3.hpp"
 	"include/math/face.hpp"
-	"include/math/print_helpers.hpp"
 )
 
 add_library(BonfireMath INTERFACE ${BonfireMath_HEADERS})

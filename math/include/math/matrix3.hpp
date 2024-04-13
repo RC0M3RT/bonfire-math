@@ -5,19 +5,15 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 
-namespace bonfire {
-namespace math {
+namespace bonfire::math {
 
 namespace detail {
 
 /**
  * Column-major order 3 dimentional matrix
  */
-template<typename T>
-  // requires std::is_floating_point_v<T>
+template<typename T> requires std::is_floating_point_v<T>
 struct Matrix3 {
-  static_assert(std::is_floating_point_v<T> && "T must be a floating point type");
-
   /**
    * @brief Zero initialize matrix
    */
@@ -82,18 +78,18 @@ constexpr auto operator*(const Matrix3<T>& m, const Matrix3<T>& n) noexcept -> M
     M = | m01(y)   m11(y)   m21(y) |
         | m02(z)   m12(z)   m22(z) |
   */
-  const auto& m00 = m.column(0).elem(0);  const auto& m10 = m.column(1).elem(0); const auto& m20 = m.column(2).elem(0);
-  const auto& m01 = m.column(0).elem(1);  const auto& m11 = m.column(1).elem(1); const auto& m21 = m.column(2).elem(1);
-  const auto& m02 = m.column(0).elem(2);  const auto& m12 = m.column(1).elem(2); const auto& m22 = m.column(2).elem(2);
+  const auto& m00 = m.column(0).x;  const auto& m10 = m.column(1).x; const auto& m20 = m.column(2).x;
+  const auto& m01 = m.column(0).y;  const auto& m11 = m.column(1).y; const auto& m21 = m.column(2).y;
+  const auto& m02 = m.column(0).z;  const auto& m12 = m.column(1).z; const auto& m22 = m.column(2).z;
 
   /**
         | n00(x)   n10(x)   n20(x) |
     N = | n01(y)   n11(y)   n21(y) |
         | n02(z)   n12(z)   n22(z) |
   */
-  const auto& n00 = n.column(0).elem(0);  const auto& n10 = n.column(1).elem(0); const auto& n20 = n.column(2).elem(0);
-  const auto& n01 = n.column(0).elem(1);  const auto& n11 = n.column(1).elem(1); const auto& n21 = n.column(2).elem(1);
-  const auto& n02 = n.column(0).elem(2);  const auto& n12 = n.column(1).elem(2); const auto& n22 = n.column(2).elem(2);
+  const auto& n00 = n.column(0).x;  const auto& n10 = n.column(1).x; const auto& n20 = n.column(2).x;
+  const auto& n01 = n.column(0).y;  const auto& n11 = n.column(1).y; const auto& n21 = n.column(2).y;
+  const auto& n02 = n.column(0).z;  const auto& n12 = n.column(1).z; const auto& n22 = n.column(2).z;
 
   /**
             | mn00  mn10  mn20  |
@@ -120,9 +116,9 @@ constexpr auto operator*(const Matrix3<T>& m, const Vector3<T>& v) noexcept -> V
     M = | m01(y)   m11(y)   m21(y) |
         | m02(z)   m12(z)   m22(z) |
   */
-  const auto& m00 = m.column(0).elem(0);  const auto& m10 = m.column(1).elem(0); const auto& m20 = m.column(2).elem(0);
-  const auto& m01 = m.column(0).elem(1);  const auto& m11 = m.column(1).elem(1); const auto& m21 = m.column(2).elem(1);
-  const auto& m02 = m.column(0).elem(2);  const auto& m12 = m.column(1).elem(2); const auto& m22 = m.column(2).elem(2);
+  const auto& m00 = m.column(0).x;  const auto& m10 = m.column(1).x; const auto& m20 = m.column(2).x;
+  const auto& m01 = m.column(0).y;  const auto& m11 = m.column(1).y; const auto& m21 = m.column(2).y;
+  const auto& m02 = m.column(0).z;  const auto& m12 = m.column(1).z; const auto& m22 = m.column(2).z;
 
   /**
         | vx |
@@ -147,8 +143,8 @@ constexpr auto operator*(const Matrix3<T>& m, const Vector3<T>& v) noexcept -> V
 
 using Mat3 = detail::Matrix3<float>;
 
-} // namespace math
-}	// namespace bonfire
+} // namespace bonfire::math
+
 
 #pragma clang diagnostic pop
 

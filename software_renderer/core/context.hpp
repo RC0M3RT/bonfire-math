@@ -10,7 +10,7 @@ struct Context {
   SDL_Renderer* renderer = nullptr;
   SDL_Texture* color_buffer_texture = nullptr;
 
-  [[nodiscard]] static auto create_context(int width, int height) -> std::optional<Context> {
+  [[nodiscard]] static auto create_context(const int width, const int height) -> std::optional<Context> {
     const auto res = SDL_Init(SDL_INIT_EVERYTHING);
     if (res != 0) {
       std::cerr << "SDL_Init: " << SDL_GetError() << std::endl;
