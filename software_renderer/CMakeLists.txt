@@ -5,6 +5,8 @@ set(SoftwareRenderer_SOURCES
     "core/entity.hpp"
     "core/components.hpp"
     "core/renderer.hpp"
+    "core/pods.hpp"
+    "core/utils.hpp"
 
     "main.cpp"
 )

@@ -3,12 +3,17 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <numbers>
+
 #include <math/vector2.hpp>
 #include <math/transformation.hpp>
+#include <math/projection.hpp>
 
 #include "canvas.hpp"
 #include "context.hpp"
 #include "entity.hpp"
+#include "pods.hpp"
+#include "utils.hpp"
 
 namespace swr {
 
@@ -21,6 +26,7 @@ struct RenderOptions {
 
 struct Triangle {
   bonfire::math::Vec2 points[3] = {};
+  bonfire::math::Vec3 normal = {};
   float avg_depth = 0.0f;
 };
 
@@ -31,12 +37,26 @@ struct RenderData {
 class Renderer {
 public:
   explicit Renderer(const int width, const int height) noexcept
-    : canvas_{width, height}, context_{}, entities_{}, camera_pos_{0.0f}, options_{}, is_running_{false} {}
+      : canvas_{width, height}, context_{}, entities_{}, camera_pos_{0.0f}, options_{}, is_running_{false}, light_{} {}
 
   [[nodiscard]] auto initialize() -> bool {
     auto ctx = Context::create_context(canvas_.get_width(), canvas_.get_height());
     if (ctx.has_value()) {
       context_ = std::move(*ctx);
+
+      const auto aspect = static_cast<float>(canvas_.get_width()) / static_cast<float>(canvas_.get_height());
+
+      /*
+       * angle in degrees = angle in radians * (180 / PI)
+       * angle in radians = angle in degrees * (PI / 180)
+       */
+      constexpr float fov_radians = std::numbers::pi_v<float> / 3.0f; // 60 degrees
+      projection_matrix_ = bonfire::math::make_projection(aspect, fov_radians, 0.1f, 100.0f, bonfire::math::coordinate_system::LeftHandedTag{},
+                                                          bonfire::math::depth_range::NegativeOneToOneTag{});
+
+      // light direction towards z axis(inside the monitor)
+      light_.direction = bonfire::math::Vec3{0.0f, 0.0f, 1.0f};
+
       return true;
     }
 
@@ -128,54 +148,38 @@ private:
       const auto& indices = entities_[entity_idx].drawable.indices;
       const auto& transform = entities_[entity_idx].transform;
 
-      auto scale_matrix = bm::Mat4::identity();
-      bm::make_scale(scale_matrix, transform.scale);
-
-      auto translation_matrix = bm::Mat4::identity();
-      bm::make_translate(translation_matrix, transform.position);
-
-      auto rotation_matrix_x = bm::Mat4::identity();
-      bm::make_rotate_x(rotation_matrix_x, transform.rotation.x);
-
-      auto rotation_matrix_y = bm::Mat4::identity();
-      bm::make_rotate_y(rotation_matrix_y, transform.rotation.y);
-
-      auto rotation_matrix_z = bm::Mat4::identity();
-      bm::make_rotate_z(rotation_matrix_z, transform.rotation.z);
+      auto world_matrix = bm::make_world_matrix(transform.scale, transform.rotation, transform.position);
 
       for (std::size_t i = 0; i < indices.size();) {
         auto vertex0 = vertices[indices[i++]];
         auto vertex1 = vertices[indices[i++]];
         auto vertex2 = vertices[indices[i++]];
 
-        // SCALE VERTICES
-        vertex0 = (scale_matrix * bm::Vec4(vertex0, 1.0f)).to_vec3();
-        vertex1 = (scale_matrix * bm::Vec4(vertex1, 1.0f)).to_vec3();
-        vertex2 = (scale_matrix * bm::Vec4(vertex2, 1.0f)).to_vec3();
+        // transform vertices
+        vertex0 = (world_matrix * bm::Vec4(vertex0, 1.0f)).to_vec3();
+        vertex1 = (world_matrix * bm::Vec4(vertex1, 1.0f)).to_vec3();
+        vertex2 = (world_matrix * bm::Vec4(vertex2, 1.0f)).to_vec3();
 
-        // ROTATE VERTICES
-        // rotate around x
-        vertex0 = (rotation_matrix_x * bm::Vec4(vertex0, 1.0f)).to_vec3();
-        vertex1 = (rotation_matrix_x * bm::Vec4(vertex1, 1.0f)).to_vec3();
-        vertex2 = (rotation_matrix_x * bm::Vec4(vertex2, 1.0f)).to_vec3();
+        /*
+         *  back face culling
+         *
+         *  Find vectors v1 - v0 and v2 - v0
+         *  Take their cross product and lets call it normal_vec
+         *  Find the camera ray by substracting the camera position from v0
+         *  Take the dot product between N and camera ray
+         *  if dot product is less than 0, return false
+         */
 
-        // rotate around y
-        vertex0 = (rotation_matrix_y * bm::Vec4(vertex0, 1.0f)).to_vec3();
-        vertex1 = (rotation_matrix_y * bm::Vec4(vertex1, 1.0f)).to_vec3();
-        vertex2 = (rotation_matrix_y * bm::Vec4(vertex2, 1.0f)).to_vec3();
+        const auto vec_ab = bm::normalize(vertex1 - vertex0);
+        const auto vec_ac = bm::normalize(vertex2 - vertex0);
 
-        // rotate around z
-        vertex0 = (rotation_matrix_z * bm::Vec4(vertex0, 1.0f)).to_vec3();
-        vertex1 = (rotation_matrix_z * bm::Vec4(vertex1, 1.0f)).to_vec3();
-        vertex2 = (rotation_matrix_z * bm::Vec4(vertex2, 1.0f)).to_vec3();
+        const auto normal_vec = bm::normalize(bm::cross_product(vec_ab, vec_ac));
 
-        // TRANSLATE VERTICES
-        vertex0 = (translation_matrix * bm::Vec4(vertex0, 1.0f)).to_vec3();
-        vertex1 = (translation_matrix * bm::Vec4(vertex1, 1.0f)).to_vec3();
-        vertex2 = (translation_matrix * bm::Vec4(vertex2, 1.0f)).to_vec3();
+        const auto camera_ray = camera_pos_ - vertex0;
 
-        // back face culling
-        if (options_.enable_back_face_culling && should_render_triangle(vertex0, vertex1, vertex2)) {
+        const auto dp = bm::dot_product(normal_vec, camera_ray);
+
+        if (options_.enable_back_face_culling && dp < 0.0f) {
           continue;
         }
 
@@ -187,6 +191,7 @@ private:
         render_data.triangles.push_back(
           Triangle{
             .points = { projected_vertex0, projected_vertex1, projected_vertex2 },
+            .normal = normal_vec,
             .avg_depth = (vertex0.z + vertex1.z + vertex2.z) / 3.0f
           }
         );
@@ -202,7 +207,13 @@ private:
 
       for (const auto& tri : triangles) {
         if (options_.render_filled_triangle) {
-          canvas_.draw_filled_triangle(tri.points[0].x, tri.points[0].y, tri.points[1].x, tri.points[1].y, tri.points[2].x, tri.points[2].y, 0xFF666666);
+          std::uint32_t color = 0xFFFFFFFF;
+
+          // calculate light based on how aligned is the face normal and the light direction
+          const float light_intensity_factor = -bm::dot_product(tri.normal, light_.direction);
+          color = light_apply_intensity(color, light_intensity_factor);
+
+          canvas_.draw_filled_triangle(tri.points[0].x, tri.points[0].y, tri.points[1].x, tri.points[1].y, tri.points[2].x, tri.points[2].y, color);
         }
 
         if (options_.render_wireframe) {
@@ -224,51 +235,30 @@ private:
     canvas_.clear_color(0xFF000000);
   }
 
-  [[nodiscard]] static auto transform_vertex(const bonfire::math::Vec3& vertex, const TransformComponent& tr) noexcept -> bonfire::math::Vec3 {
+  [[nodiscard]] auto project(const bonfire::math::Vec3& vertex) const noexcept -> bonfire::math::Vec2 {
     namespace bm = bonfire::math;
 
-    // rotate
-    auto processed_vertex = bm::rotate_x(vertex, tr.rotation.x);
-    processed_vertex = bm::rotate_y(processed_vertex, tr.rotation.y);
-    processed_vertex = bm::rotate_z(processed_vertex, tr.rotation.z);
+    auto projected_vertex = projection_matrix_ * bm::Vec4(vertex, 1.0f);
 
-    // // translate
-    // processed_vertex += tr.position;
-
-    return processed_vertex;
-  }
-
-  [[nodiscard]] auto should_render_triangle(const bonfire::math::Vec3& v0, const bonfire::math::Vec3& v1, const bonfire::math::Vec3& v2) const noexcept -> bool {
-    namespace bm = bonfire::math;
-    /*
-     *  Find vectors v1 - v0 and v2 - v0
-     *  Take their cross product and lets call it normal_vec
-     *  Find the camera ray by substracting the camera position from v0
-     *  Take the dot product between N and camera ray
-     *  if dot product is less than 0, return false
-     */
-
-    const auto vec_ab = v1 - v0;
-    const auto vec_ac = v2 - v0;
-
-    const auto normal_vec = bm::cross_product(vec_ab, vec_ac);
-
-    const auto camera_ray = v0 - camera_pos_;
-
-    if (const auto dp = bm::dot_product(normal_vec, camera_ray); dp < 0.0f) {
-      return false;
+    // perspective divide
+    if (projected_vertex.w != 0.0f) {
+      projected_vertex.x /= projected_vertex.w;
+      projected_vertex.y /= projected_vertex.w;
+      projected_vertex.z /= projected_vertex.w;
     }
 
-    return true;
-  }
+    // scale
+    projected_vertex.x *= static_cast<float>(canvas_.get_width()) / 2.0f;
+    projected_vertex.y *= static_cast<float>(canvas_.get_height()) / 2.0f;
 
-  [[nodiscard]] auto project(const bonfire::math::Vec3& pos) const noexcept -> bonfire::math::Vec2 {
-    constexpr static auto fov_factor = 640.0f;
+    // invert y values to account for flipped screen y coordinates
+    projected_vertex.y *= -1.0f;
 
-    return bonfire::math::Vec2(
-      ((fov_factor * pos.x) / pos.z) + static_cast<float>(canvas_.get_width()) / 2,
-      ((fov_factor * pos.y) / pos.z) + static_cast<float>(canvas_.get_height()) / 2
-    );
+    // translate to middle of the screen
+    projected_vertex.x += static_cast<float>(canvas_.get_width()) / 2.0f;
+    projected_vertex.y += static_cast<float>(canvas_.get_height()) / 2.0f;
+
+    return bm::Vec2{projected_vertex.x, projected_vertex.y};
   }
 
   void update(float delta_time) {
@@ -285,8 +275,11 @@ private:
   std::vector<Entity> entities_;
   std::vector<RenderData> render_datas_;
   bonfire::math::Vec3 camera_pos_;
+  bonfire::math::Mat4 projection_matrix_;
   RenderOptions options_;
   bool is_running_;
+
+  Light light_;
 };
 
 } // namespace swr
