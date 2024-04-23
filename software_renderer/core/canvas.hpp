@@ -1,7 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <future>
+#include <math/vector2.hpp>
+#include <math/vector3.hpp>
 #include <vector>
+
+#include "pods.hpp"
 
 namespace swr {
 
@@ -134,6 +139,82 @@ class Canvas {
   // triangle midpoint, my = y1,  mx - x0 / x2 - x0 = y1 - y0 / y2 - y0
   // mx =  (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;  => triangle similarity
 
+  void draw_textured_triangle(Vertex2 v0, Vertex2 v1, Vertex2 v2, const Texture& texture) {
+    // We need to sort the vertices by y-coordinate ascending (y0 < y1 < y2)
+    if (v0.y > v1.y) {
+      std::swap(v0, v1);
+    }
+    if (v1.y > v2.y) {
+      std::swap(v1, v2);
+    }
+    if (v0.y > v1.y) {
+      std::swap(v0, v1);
+    }
+
+    // Render the upper part of the triangle (flat-bottom)
+
+    float inv_slope_1 = 0;
+    float inv_slope_2 = 0;
+
+    if (v1.y - v0.y != 0) {
+      inv_slope_1 = static_cast<float>((v1.x - v0.x)) / static_cast<float>(abs(v1.y - v0.y));
+    }
+    if (v2.y - v0.y != 0) {
+      inv_slope_2 = static_cast<float>((v2.x - v0.x)) / static_cast<float>(abs(v2.y - v0.y));
+    }
+
+    if (v1.y - v0.y != 0) {
+      for (int y = v0.y; y <= v1.y; y++) {
+        int x_start = static_cast<int>(static_cast<float>(v1.x) + static_cast<float>((y - v1.y)) * inv_slope_1);
+        int x_end = static_cast<int>(static_cast<float>(v0.x) + static_cast<float>((y - v0.y)) * inv_slope_2);
+
+        if (x_end < x_start) {
+          std::swap(x_start, x_end);  // swap if x_start is to the right of x_end
+        }
+
+        for (int x = x_start; x < x_end; x++) {
+          // Draw our pixel with the color that comes from the texture
+          Vertex2 vp{};
+          vp.x = x;
+          vp.y = y;
+
+          draw_texel(v0, v1, v2, vp, texture);
+        }
+      }
+    }
+
+    // Render the bottom part of the triangle (flat-top)
+    inv_slope_1 = 0;
+    inv_slope_2 = 0;
+
+    if (v2.y - v1.y != 0) {
+      inv_slope_1 = static_cast<float>((v2.x - v1.x)) / static_cast<float>(abs(v2.y - v1.y));
+    }
+    if (v2.y - v0.y != 0) {
+      inv_slope_2 = static_cast<float>((v2.x - v0.x)) / static_cast<float>(abs(v2.y - v0.y));
+    }
+
+    if (v2.y - v1.y != 0) {
+      for (int y = v1.y; y <= v2.y; y++) {
+        int x_start = static_cast<int>(static_cast<float>(v1.x) + static_cast<float>((y - v1.y)) * inv_slope_1);
+        int x_end = static_cast<int>(static_cast<float>(v0.x) + static_cast<float>((y - v0.y)) * inv_slope_2);
+
+        if (x_end < x_start) {
+          std::swap(x_start, x_end);  // swap if x_start is to the right of x_end
+        }
+
+        for (int x = x_start; x < x_end; x++) {
+          // Draw our pixel with the color that comes from the texture
+          Vertex2 vp{};
+          vp.x = x;
+          vp.y = y;
+
+          draw_texel(v0, v1, v2, vp, texture);
+        }
+      }
+    }
+  }
+
  private:
   void draw_flat_bottom_triangle(const int x0, const int y0, const int x1, const int y1, const int mx,
                                  const int my, const std::uint32_t color) {
@@ -169,6 +250,50 @@ class Canvas {
       x_start -= inv_slope0;
       x_end -= inv_slope1;
     }
+  }
+
+  void draw_texel(const Vertex2& a, const Vertex2& b, const Vertex2& c, const Vertex2& p, const Texture& texture) {
+    const auto weights = barycentric_weights(a, b, c, p);
+
+    const float alpha = weights.x;
+    const float beta = weights.y;
+    const float gamma = weights.z;
+
+    // Perform the interpolation of all U and V values using barycentric weights
+    const float interpolated_u = (a.u)*alpha + (b.u)*beta + (c.u)*gamma;
+    const float interpolated_v = (a.v)*alpha + (b.v)*beta + (c.v)*gamma;
+
+    // Map the UV coordinate to the full texture width and height
+    const int tex_x = static_cast<int>(abs(interpolated_u * static_cast<float>(texture.width)));
+    const int tex_y = static_cast<int>(abs(interpolated_v * static_cast<float>(texture.height)));
+
+    const auto idx = ((texture.width * tex_y) + tex_x) % (texture.width * texture.height);
+
+    draw_pixel(p.x, p.y, texture.texels[idx]);
+  }
+
+  static auto barycentric_weights(const Vertex2& a, const Vertex2& b, const Vertex2& c, const Vertex2& p)
+      -> bonfire::math::Vec3 {
+    // Find the vectors between the vertices ABC and point p
+    const auto ac = c - a;
+    const auto ab = b - a;
+    const auto ap = p - a;
+    const auto pc = c - p;
+    const auto pb = b - p;
+
+    // Compute the area of the full parallegram/triangle ABC using 2D cross product
+    const auto area_parallelogram_abc = static_cast<float>((ac.x * ab.y - ac.y * ab.x));  // || AC x AB ||
+
+    // Alpha is the area of the small parallelogram/triangle PBC divided by the area of the full parallelogram/triangle ABC
+    const float alpha = static_cast<float>((pc.x * pb.y - pc.y * pb.x)) / area_parallelogram_abc;
+
+    // Beta is the area of the small parallelogram/triangle APC divided by the area of the full parallelogram/triangle ABC
+    const float beta = static_cast<float>((ac.x * ap.y - ac.y * ap.x)) / area_parallelogram_abc;
+
+    // Weight gamma is easily found since barycentric coordinates always add up to 1.0
+    const float gamma = std::abs(1.0f - alpha - beta);
+
+    return bonfire::math::Vec3{std::abs(alpha), std::abs(beta), gamma};
   }
 
 private:

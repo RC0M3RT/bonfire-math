@@ -54,12 +54,12 @@ struct Matrix4 {
   }
 
   constexpr auto column(std::size_t column_index) noexcept -> Vector4<T>& {
-    assert(column_index < 4 && "Column index has to be smaller than 4 for 4x4 matrix");
+    [[assume(column_index < 4 && column_index >= 0)]];
     return mat_[column_index];
   }
 
   constexpr auto column(std::size_t column_index) const noexcept -> const Vector4<T>& {
-    assert(column_index < 4 && "Column index has to be smaller than 4 for 4x4 matrix");
+    [[assume(column_index < 4 && column_index >= 0)]];
     return mat_[column_index];
   }
 

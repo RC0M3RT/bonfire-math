@@ -40,17 +40,17 @@ struct Matrix3 {
     };
   }
 
-  constexpr auto operator==(const Matrix3<T>& other) const noexcept -> bool { 
+  constexpr auto operator==(const Matrix3<T>& other) const noexcept -> bool {
     return mat_[0] == other.mat_[0] && mat_[1] == other.mat_[1] && mat_[2] == other.mat_[2];
   }
 
   constexpr auto column(std::size_t column_index) noexcept -> Vector3<T>& {
-    assert(column_index < 3 && "Column index has to be smaller than 3 for 3x3 matrix");
+    [[assume(column_index < 3 && column_index >= 0)]];
     return mat_[column_index];
   }
 
   constexpr auto column(std::size_t column_index) const noexcept -> const Vector3<T>& {
-    assert(column_index < 3 && "Column index has to be smaller than 3 for 3x3 matrix");
+    [[assume(column_index < 3 && column_index >= 0)]];
     return mat_[column_index];
   }
 

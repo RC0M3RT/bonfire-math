@@ -19,19 +19,22 @@ namespace swr {
 
 struct RenderOptions {
   bool enable_back_face_culling = true;
-  bool render_wireframe = true;
+  bool render_wireframe = false;
   bool render_filled_triangle = false;
   bool render_vertex_points = false;
+  bool render_textured = true;
 };
 
 struct Triangle {
   bonfire::math::Vec2 points[3] = {};
+  bonfire::math::Vec2 uvs[3] = {};
   bonfire::math::Vec3 normal = {};
   float avg_depth = 0.0f;
 };
 
 struct RenderData {
   std::vector<Triangle> triangles{};
+  std::size_t texture_index = std::numeric_limits<std::size_t>::max();
 };
 
 class Renderer {
@@ -122,6 +125,8 @@ private:
           options_.enable_back_face_culling = !options_.enable_back_face_culling;
         } else if (ev.key.keysym.sym == SDLK_4) {
           options_.render_vertex_points = !options_.render_vertex_points;
+        } else if (ev.key.keysym.sym == SDLK_5) {
+          options_.render_textured = !options_.render_textured;
         }
         break;
       }
@@ -142,6 +147,8 @@ private:
     for (std::size_t entity_idx = 0; entity_idx < entities_.size(); entity_idx++) {
       auto& render_data = render_datas_[entity_idx];
 
+      render_data.texture_index = entity_idx;
+
       render_data.triangles.clear();
 
       const auto& vertices = entities_[entity_idx].drawable.vertices;
@@ -151,14 +158,19 @@ private:
       auto world_matrix = bm::make_world_matrix(transform.scale, transform.rotation, transform.position);
 
       for (std::size_t i = 0; i < indices.size();) {
-        auto vertex0 = vertices[indices[i++]];
-        auto vertex1 = vertices[indices[i++]];
-        auto vertex2 = vertices[indices[i++]];
+
+        const auto idx0 = indices[i++];
+        const auto idx1 = indices[i++];
+        const auto idx2 = indices[i++];
+
+        auto vertex0 = vertices[idx0];
+        auto vertex1 = vertices[idx1];
+        auto vertex2 = vertices[idx2];
 
         // transform vertices
-        vertex0 = (world_matrix * bm::Vec4(vertex0, 1.0f)).to_vec3();
-        vertex1 = (world_matrix * bm::Vec4(vertex1, 1.0f)).to_vec3();
-        vertex2 = (world_matrix * bm::Vec4(vertex2, 1.0f)).to_vec3();
+        vertex0.pos = (world_matrix * bm::Vec4(vertex0.pos, 1.0f)).to_vec3();
+        vertex1.pos = (world_matrix * bm::Vec4(vertex1.pos, 1.0f)).to_vec3();
+        vertex2.pos = (world_matrix * bm::Vec4(vertex2.pos, 1.0f)).to_vec3();
 
         /*
          *  back face culling
@@ -170,12 +182,12 @@ private:
          *  if dot product is less than 0, return false
          */
 
-        const auto vec_ab = bm::normalize(vertex1 - vertex0);
-        const auto vec_ac = bm::normalize(vertex2 - vertex0);
+        const auto vec_ab = bm::normalize(vertex1.pos - vertex0.pos);
+        const auto vec_ac = bm::normalize(vertex2.pos - vertex0.pos);
 
         const auto normal_vec = bm::normalize(bm::cross_product(vec_ab, vec_ac));
 
-        const auto camera_ray = camera_pos_ - vertex0;
+        const auto camera_ray = camera_pos_ - vertex0.pos;
 
         const auto dp = bm::dot_product(normal_vec, camera_ray);
 
@@ -184,15 +196,16 @@ private:
         }
 
         // project vertices
-        const auto projected_vertex0 = project(vertex0);
-        const auto projected_vertex1 = project(vertex1);
-        const auto projected_vertex2 = project(vertex2);
+        const auto projected_vertex0 = project(vertex0.pos);
+        const auto projected_vertex1 = project(vertex1.pos);
+        const auto projected_vertex2 = project(vertex2.pos);
 
         render_data.triangles.push_back(
           Triangle{
             .points = { projected_vertex0, projected_vertex1, projected_vertex2 },
+            .uvs = {vertex0.uv, vertex1.uv, vertex2.uv},
             .normal = normal_vec,
-            .avg_depth = (vertex0.z + vertex1.z + vertex2.z) / 3.0f
+            .avg_depth = (vertex0.pos.z + vertex1.pos.z + vertex2.pos.z) / 3.0f
           }
         );
       }
@@ -203,7 +216,7 @@ private:
       });
     }
 
-    for (const auto& [triangles] : render_datas_) {
+    for (const auto& [triangles, texture_index] : render_datas_) {
 
       for (const auto& tri : triangles) {
         if (options_.render_filled_triangle) {
@@ -214,6 +227,13 @@ private:
           color = light_apply_intensity(color, light_intensity_factor);
 
           canvas_.draw_filled_triangle(tri.points[0].x, tri.points[0].y, tri.points[1].x, tri.points[1].y, tri.points[2].x, tri.points[2].y, color);
+        }
+
+        if (options_.render_textured && texture_index != std::numeric_limits<std::size_t>::max()) {
+          const Vertex2 v0{tri.points[0], tri.uvs[0]};
+          const Vertex2 v1{tri.points[1], tri.uvs[1]};
+          const Vertex2 v2{tri.points[2], tri.uvs[2]};
+          canvas_.draw_textured_triangle(v0, v1, v2, entities_[texture_index].drawable.texture);
         }
 
         if (options_.render_wireframe) {

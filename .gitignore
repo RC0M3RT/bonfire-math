@@ -39,3 +39,4 @@ build/
 .clang-format
 
 software_renderer/assets/*.obj
+software_renderer/assets/*.png

@@ -7,7 +7,8 @@ set(SoftwareRenderer_SOURCES
     "core/renderer.hpp"
     "core/pods.hpp"
     "core/utils.hpp"
-
+    "core/stb_image.h"
+    "core/stb_image.cpp"
     "main.cpp"
 )
 
