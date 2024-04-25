@@ -20,15 +20,15 @@ namespace swr {
 struct RenderOptions {
   bool enable_back_face_culling = true;
   bool render_wireframe = false;
-  bool render_filled_triangle = false;
+  bool render_filled_triangle = true;
   bool render_vertex_points = false;
-  bool render_textured = true;
+  bool render_textured = false;
 };
 
 struct Triangle {
-  bonfire::math::Vec2 points[3] = {};
-  bonfire::math::Vec2 uvs[3] = {};
-  bonfire::math::Vec3 normal = {};
+  bonfire::math::float2 points[3] = {};
+  bonfire::math::float2 uvs[3] = {};
+  bonfire::math::float3 normal = {};
   float avg_depth = 0.0f;
 };
 
@@ -58,7 +58,7 @@ public:
                                                           bonfire::math::depth_range::NegativeOneToOneTag{});
 
       // light direction towards z axis(inside the monitor)
-      light_.direction = bonfire::math::Vec3{0.0f, 0.0f, 1.0f};
+      light_.direction = bonfire::math::float3{0.0f, 0.0f, 1.0f};
 
       return true;
     }
@@ -168,9 +168,9 @@ private:
         auto vertex2 = vertices[idx2];
 
         // transform vertices
-        vertex0.pos = (world_matrix * bm::Vec4(vertex0.pos, 1.0f)).to_vec3();
-        vertex1.pos = (world_matrix * bm::Vec4(vertex1.pos, 1.0f)).to_vec3();
-        vertex2.pos = (world_matrix * bm::Vec4(vertex2.pos, 1.0f)).to_vec3();
+        vertex0.pos = (world_matrix * bm::float4(vertex0.pos, 1.0f)).to_vec3();
+        vertex1.pos = (world_matrix * bm::float4(vertex1.pos, 1.0f)).to_vec3();
+        vertex2.pos = (world_matrix * bm::float4(vertex2.pos, 1.0f)).to_vec3();
 
         /*
          *  back face culling
@@ -223,7 +223,7 @@ private:
           std::uint32_t color = 0xFFFFFFFF;
 
           // calculate light based on how aligned is the face normal and the light direction
-          const float light_intensity_factor = -bm::dot_product(tri.normal, light_.direction);
+          const float light_intensity_factor = -bm::dot_product(tri.normal, light_.direction) * 0.5f;
           color = light_apply_intensity(color, light_intensity_factor);
 
           canvas_.draw_filled_triangle(tri.points[0].x, tri.points[0].y, tri.points[1].x, tri.points[1].y, tri.points[2].x, tri.points[2].y, color);
@@ -255,10 +255,10 @@ private:
     canvas_.clear_color(0xFF000000);
   }
 
-  [[nodiscard]] auto project(const bonfire::math::Vec3& vertex) const noexcept -> bonfire::math::Vec2 {
+  [[nodiscard]] auto project(const bonfire::math::float3& vertex) const noexcept -> bonfire::math::float2 {
     namespace bm = bonfire::math;
 
-    auto projected_vertex = projection_matrix_ * bm::Vec4(vertex, 1.0f);
+    auto projected_vertex = projection_matrix_ * bm::float4(vertex, 1.0f);
 
     // perspective divide
     if (projected_vertex.w != 0.0f) {
@@ -278,7 +278,7 @@ private:
     projected_vertex.x += static_cast<float>(canvas_.get_width()) / 2.0f;
     projected_vertex.y += static_cast<float>(canvas_.get_height()) / 2.0f;
 
-    return bm::Vec2{projected_vertex.x, projected_vertex.y};
+    return bm::float2{projected_vertex.x, projected_vertex.y};
   }
 
   void update(float delta_time) {
@@ -294,7 +294,7 @@ private:
   Context context_;
   std::vector<Entity> entities_;
   std::vector<RenderData> render_datas_;
-  bonfire::math::Vec3 camera_pos_;
+  bonfire::math::float3 camera_pos_;
   bonfire::math::Mat4 projection_matrix_;
   RenderOptions options_;
   bool is_running_;

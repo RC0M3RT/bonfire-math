@@ -21,24 +21,24 @@ struct Matrix4 {
   /**
    * @brief Construct a matrix while initializing all members to given val
    */
-  constexpr explicit Matrix4(T val) noexcept : mat_{Vector4<T>{val}, Vector4<T>{val}, Vector4<T>{val}, Vector4<T>{val}} {}
+  constexpr explicit Matrix4(T val) noexcept : mat_{vector4<T>{val}, vector4<T>{val}, vector4<T>{val}, vector4<T>{val}} {}
 
   /**
    * @brief Per member initialize matrix
    */
   constexpr explicit Matrix4(T p0x, T p0y, T p0z, T p0w, T p1x, T p1y, T p1z, T p1w, T p2x, T p2y, T p2z, T p2w, T p3x, T p3y, T p3z, T p3w) noexcept
-      : mat_{Vector4<T>{p0x, p0y, p0z, p0w}, Vector4<T>{p1x, p1y, p1z, p1w}, Vector4<T>{p2x, p2y, p2z, p2w}, Vector4<T>{p3x, p3y, p3z, p3w}} {}
+      : mat_{vector4<T>{p0x, p0y, p0z, p0w}, vector4<T>{p1x, p1y, p1z, p1w}, vector4<T>{p2x, p2y, p2z, p2w}, vector4<T>{p3x, p3y, p3z, p3w}} {}
 
   /**
    * @brief Construct a matrix from 4 vector3
    */
-  constexpr explicit Matrix4(const Vector3<T>& v0, T pw0, const Vector3<T>& v1, T pw1, const Vector3<T>& v2, T pw2, const Vector3<T>& v3, T pw3) noexcept
-      : mat_{Vector4<T>{v0, pw0}, Vector4<T>{v1, pw1}, Vector4<T>{v2, pw2}, Vector4<T>{v3, pw3}} {}
+  constexpr explicit Matrix4(const vector3<T>& v0, T pw0, const vector3<T>& v1, T pw1, const vector3<T>& v2, T pw2, const vector3<T>& v3, T pw3) noexcept
+      : mat_{vector4<T>{v0, pw0}, vector4<T>{v1, pw1}, vector4<T>{v2, pw2}, vector4<T>{v3, pw3}} {}
 
   /**
    * @brief Construct a matrix from 4 vector4
    */
-  constexpr explicit Matrix4(const Vector4<T>& v0, const Vector4<T>& v1, const Vector4<T>& v2, const Vector4<T>& v3) noexcept : mat_{v0, v1, v2, v3} {}
+  constexpr explicit Matrix4(const vector4<T>& v0, const vector4<T>& v1, const vector4<T>& v2, const vector4<T>& v3) noexcept : mat_{v0, v1, v2, v3} {}
 
   constexpr static auto identity() -> Matrix4<T> {
     return Matrix4<T>{
@@ -53,18 +53,18 @@ struct Matrix4 {
     return mat_[0] == other.mat_[0] && mat_[1] == other.mat_[1] && mat_[2] == other.mat_[2] && mat_[3] == other.mat_[3];
   }
 
-  constexpr auto column(std::size_t column_index) noexcept -> Vector4<T>& {
+  constexpr auto column(std::size_t column_index) noexcept -> vector4<T>& {
     [[assume(column_index < 4 && column_index >= 0)]];
     return mat_[column_index];
   }
 
-  constexpr auto column(std::size_t column_index) const noexcept -> const Vector4<T>& {
+  constexpr auto column(std::size_t column_index) const noexcept -> const vector4<T>& {
     [[assume(column_index < 4 && column_index >= 0)]];
     return mat_[column_index];
   }
 
 private:
-  Vector4<T> mat_[4];
+  vector4<T> mat_[4];
 };
 
 template<typename T>
@@ -141,7 +141,7 @@ constexpr auto operator*(const Matrix4<T>& m, const Matrix4<T>& n) noexcept -> M
 }
 
 template<typename T>
-constexpr auto operator*(const Matrix4<T>& m, const Vector4<T>& v) noexcept -> Vector4<T> {
+constexpr auto operator*(const Matrix4<T>& m, const vector4<T>& v) noexcept -> vector4<T> {
   /**
         | m00(x)   m10(x)   m20(x)   m30(x) |
     M = | m01(y)   m11(y)   m21(y)   m31(y) |
@@ -166,7 +166,7 @@ constexpr auto operator*(const Matrix4<T>& m, const Vector4<T>& v) noexcept -> V
             | mvz  |
             | mvw  |
   */
-  return Vector4<T>{
+  return vector4<T>{
     m00 * v.x + m10 * v.y + m20 * v.z + m30 * v.w, // mvx
     m01 * v.x + m11 * v.y + m21 * v.z + m31 * v.w, // mvy
     m02 * v.x + m12 * v.y + m22 * v.z + m32 * v.w, // mvz

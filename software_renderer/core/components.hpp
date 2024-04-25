@@ -7,14 +7,14 @@
 namespace swr {
 
 struct TransformComponent {
-  bonfire::math::Vec3 position{0.f};
-  bonfire::math::Vec3 rotation{};
-  bonfire::math::Vec3 scale{1.0f};
+  bonfire::math::float3 position{0.f};
+  bonfire::math::float3 rotation{};
+  bonfire::math::float3 scale{1.0f};
 };
 
 struct Vertex {
-  bonfire::math::Vec3 pos;
-  bonfire::math::Vec2 uv;
+  bonfire::math::float3 pos;
+  bonfire::math::float2 uv;
 
   constexpr auto operator==(const Vertex& other) const -> bool {
     return pos == other.pos;

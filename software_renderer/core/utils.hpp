@@ -98,13 +98,13 @@ static DrawableComponent load_model(const std::string& filename, const std::opti
     for (const auto& index : shape.mesh.indices) {
       Vertex vertex;
 
-      vertex.pos = bm::Vec3{
+      vertex.pos = bm::float3{
         attrib.vertices[3 * index.vertex_index + 0],
         attrib.vertices[3 * index.vertex_index + 1],
         attrib.vertices[3 * index.vertex_index + 2]
       };
 
-      vertex.uv = bm::Vec2{
+      vertex.uv = bm::float2{
         attrib.texcoords[2 * index.texcoord_index + 0],
         attrib.texcoords[2 * index.texcoord_index + 1],
       };

@@ -8,7 +8,7 @@
 
 namespace bonfire::math {
 
-constexpr auto make_scale(const Vec3& scale) -> Mat4 {
+constexpr auto make_scale(const float3& scale) -> Mat4 {
   /**
         | sx   0    0   0 |
     M = | 0    sy   0   0 |
@@ -26,7 +26,7 @@ constexpr auto make_scale(const Vec3& scale) -> Mat4 {
   return m;
 }
 
-constexpr auto make_translate(const Vec3& position) -> Mat4 {
+constexpr auto make_translate(const float3& position) -> Mat4 {
   /**
         | 1   0   0   tx |
     M = | 0   1   0   ty |
@@ -101,7 +101,7 @@ inline auto make_rotate_y(const float angle) -> Mat4 {
   return m;
 }
 
-inline auto make_world_matrix(const Vec3& scale, const Vec3& rotation, const Vec3& position) -> Mat4 {
+inline auto make_world_matrix(const float3& scale, const float3& rotation, const float3& position) -> Mat4 {
   const auto scale_matrix = make_scale(scale);
 
   const auto translation_matrix = make_translate(position);

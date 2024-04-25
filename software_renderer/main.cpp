@@ -28,7 +28,7 @@ int main() {
   swr::Entity e{};
   e.drawable = swr::load_model(model_file, texture_file);
   e.transform.position.z = 5.0f;
-  e.transform.scale = bm::Vec3{1.0f, 1.0f, 1.0f};
+  e.transform.scale = bm::float3{1.0f, 1.0f, 1.0f};
 
   std::cout << "is: " << e.drawable.indices.size() << ", vs: " << e.drawable.vertices.size() << std::endl;
 

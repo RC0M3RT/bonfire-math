@@ -9,30 +9,30 @@ namespace bonfire::math {
 
 namespace detail {
 
-template<typename T> requires std::is_floating_point_v<T>
-struct Vector4 {
+template<typename T> requires std::is_arithmetic_v<T>
+struct vector4 {
   T x, y, z, w;
 
-  constexpr Vector4() noexcept : x{0}, y{0}, z{0}, w{0} {}
-  constexpr explicit Vector4(T px, T py, T pz, T pw) noexcept : x{px}, y{py}, z{pz}, w{pw} {}
-  constexpr explicit Vector4(T val) noexcept : x{val}, y{val}, z{val}, w{val} {}
+  constexpr vector4() noexcept : x{0}, y{0}, z{0}, w{0} {}
+  constexpr explicit vector4(T px, T py, T pz, T pw) noexcept : x{px}, y{py}, z{pz}, w{pw} {}
+  constexpr explicit vector4(T val) noexcept : x{val}, y{val}, z{val}, w{val} {}
 
-  constexpr explicit Vector4(const Vector3<T>& v, const T pw) : x{v.x}, y{v.y}, z{v.z}, w{pw} {}
+  constexpr explicit vector4(const vector3<T>& v, const T pw) : x{v.x}, y{v.y}, z{v.z}, w{pw} {}
 
-  constexpr Vector4(const Vector4<T>& other) noexcept : x{other.x}, y{other.y}, z{other.z}, w{other.w} {}
-  constexpr Vector4(Vector4<T>&& other) noexcept : x{other.x}, y{other.y}, z{other.z}, w{other.w} {}
+  constexpr vector4(const vector4<T>& other) noexcept : x{other.x}, y{other.y}, z{other.z}, w{other.w} {}
+  constexpr vector4(vector4<T>&& other) noexcept : x{other.x}, y{other.y}, z{other.z}, w{other.w} {}
 
-  constexpr auto to_vec3() const noexcept -> Vector3<T> {
-    return Vector3<T> {
+  constexpr auto to_vec3() const noexcept -> vector3<T> {
+    return vector3<T> {
       x, y, z
     };
   }
 
-  constexpr auto operator==(const Vector4<T>& other) const noexcept -> bool {
+  constexpr auto operator==(const vector4<T>& other) const noexcept -> bool {
     return x == other.x && y == other.y && z == other.z && w == other.w;
   }
 
-  constexpr auto operator=(const Vector4<T>& other) noexcept -> Vector4<T>& {
+  constexpr auto operator=(const vector4<T>& other) noexcept -> vector4<T>& {
     x = other.x;
     y = other.y;
     z = other.z;
@@ -40,7 +40,7 @@ struct Vector4 {
     return *this;
   }
 
-  constexpr auto operator=(Vector4<T>&& other) noexcept -> Vector4<T>& {
+  constexpr auto operator=(vector4<T>&& other) noexcept -> vector4<T>& {
     x = other.x;
     y = other.y;
     z = other.z;
@@ -48,7 +48,7 @@ struct Vector4 {
     return *this;
   }
 
-  constexpr auto operator*=(T val) noexcept -> Vector4<T>& {
+  constexpr auto operator*=(T val) noexcept -> vector4<T>& {
     x *= val;
     y *= val;
     z *= val;
@@ -56,7 +56,7 @@ struct Vector4 {
     return *this;
   }
 
-  constexpr auto operator/=(T val) noexcept -> Vector4<T>& {
+  constexpr auto operator/=(T val) noexcept -> vector4<T>& {
     x /= val;
     y /= val;
     z /= val;
@@ -64,7 +64,7 @@ struct Vector4 {
     return *this;
   }
 
-  constexpr auto operator+=(const Vector4<T>& other) noexcept -> Vector4<T>& {
+  constexpr auto operator+=(const vector4<T>& other) noexcept -> vector4<T>& {
     x += other.x;
     y += other.y;
     z += other.z;
@@ -72,7 +72,7 @@ struct Vector4 {
     return *this;
   }
 
-  constexpr auto operator-=(const Vector4<T>& other) noexcept -> Vector4<T>& {
+  constexpr auto operator-=(const vector4<T>& other) noexcept -> vector4<T>& {
     x -= other.x;
     y -= other.y;
     z -= other.z;
@@ -83,43 +83,44 @@ struct Vector4 {
 };
 
 template<typename T>
-constexpr auto operator*(const Vector4<T>& vec, T val) noexcept -> Vector4<T> {
-  return Vector4<T>{vec.x * val, vec.y * val, vec.z * val, vec.w * val};
+constexpr auto operator*(const vector4<T>& vec, T val) noexcept -> vector4<T> {
+  return vector4<T>{vec.x * val, vec.y * val, vec.z * val, vec.w * val};
 }
 
 template<typename T>
-constexpr auto operator/(const Vector4<T>& vec, T val) noexcept -> Vector4<T> {
-  return Vector4<T>{vec.x / val, vec.y / val, vec.z / val, vec.w / val};
+constexpr auto operator/(const vector4<T>& vec, T val) noexcept -> vector4<T> {
+  return vector4<T>{vec.x / val, vec.y / val, vec.z / val, vec.w / val};
 }
 
 template<typename T>
-constexpr auto operator-(const Vector4<T>& vec) noexcept -> Vector4<T> {
-  return Vector4<T>{-vec.x, -vec.y, -vec.z, -vec.w};
+constexpr auto operator-(const vector4<T>& vec) noexcept -> vector4<T> {
+  return vector4<T>{-vec.x, -vec.y, -vec.z, -vec.w};
 }
 
 template<typename T>
-constexpr auto operator+(const Vector4<T>& vec1, const Vector4<T>& vec2) noexcept -> Vector4<T> {
-  return Vector4<T>{vec1.x + vec2.x, vec1.y + vec2.y, vec1.z + vec2.z, vec1.w + vec2.w};
+constexpr auto operator+(const vector4<T>& vec1, const vector4<T>& vec2) noexcept -> vector4<T> {
+  return vector4<T>{vec1.x + vec2.x, vec1.y + vec2.y, vec1.z + vec2.z, vec1.w + vec2.w};
 }
 
 template<typename T>
-constexpr auto operator-(const Vector4<T>& vec1, const Vector4<T>& vec2) noexcept -> Vector4<T> {
-  return Vector4<T>{vec1.x - vec2.x, vec1.y - vec2.y, vec1.z - vec2.z, vec1.w - vec2.w};
+constexpr auto operator-(const vector4<T>& vec1, const vector4<T>& vec2) noexcept -> vector4<T> {
+  return vector4<T>{vec1.x - vec2.x, vec1.y - vec2.y, vec1.z - vec2.z, vec1.w - vec2.w};
 }
 
 } // namespace detail
 
 template<typename T>
-constexpr auto magnitude(const detail::Vector4<T>& vec) noexcept -> T {
+constexpr auto magnitude(const detail::vector4<T>& vec) noexcept -> T {
   return T{std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w)};
 }
 
 template<typename T>
-constexpr auto normalize(const detail::Vector4<T>& vec) noexcept -> detail::Vector4<T> {
-  return detail::Vector4<T>{vec / magnitude(vec)};
+constexpr auto normalize(const detail::vector4<T>& vec) noexcept -> detail::vector4<T> {
+  return detail::vector4<T>{vec / magnitude(vec)};
 }
 
-using Vec4 = detail::Vector4<float>;
+using float4 = detail::vector4<float>;
+using int4 = detail::vector4<int>;
 
 } // namespace bonfire::math
 

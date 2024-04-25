@@ -19,18 +19,18 @@ struct Matrix3 {
   /**
    * @brief Construct a matrix while initializing all members to given val
    */
-  constexpr explicit Matrix3(T val) noexcept : mat_{Vector3<T>{val}, Vector3<T>{val}, Vector3<T>{val}} {}
+  constexpr explicit Matrix3(T val) noexcept : mat_{vector3<T>{val}, vector3<T>{val}, vector3<T>{val}} {}
 
   /**
    * @brief Per member initialize matrix
    */
   constexpr explicit Matrix3(T p0x, T p0y, T p0z, T p1x, T p1y, T p1z, T p2x, T p2y, T p2z) noexcept
-      : mat_{Vector3<T>{p0x, p0y, p0z}, Vector3<T>{p1x, p1y, p1z}, Vector3<T>{p2x, p2y, p2z}} {}
+      : mat_{vector3<T>{p0x, p0y, p0z}, vector3<T>{p1x, p1y, p1z}, vector3<T>{p2x, p2y, p2z}} {}
 
   /**
    * @brief Construct a matrix from 3 vectors
    */
-  constexpr explicit Matrix3(const Vector3<T>& p0, const Vector3<T>& p1, const Vector3<T>& p2) noexcept : mat_{p0, p1, p2} {}
+  constexpr explicit Matrix3(const vector3<T>& p0, const vector3<T>& p1, const vector3<T>& p2) noexcept : mat_{p0, p1, p2} {}
 
   constexpr static auto identity() -> Matrix3<T> {
     return Matrix3<T>{
@@ -44,18 +44,18 @@ struct Matrix3 {
     return mat_[0] == other.mat_[0] && mat_[1] == other.mat_[1] && mat_[2] == other.mat_[2];
   }
 
-  constexpr auto column(std::size_t column_index) noexcept -> Vector3<T>& {
+  constexpr auto column(std::size_t column_index) noexcept -> vector3<T>& {
     [[assume(column_index < 3 && column_index >= 0)]];
     return mat_[column_index];
   }
 
-  constexpr auto column(std::size_t column_index) const noexcept -> const Vector3<T>& {
+  constexpr auto column(std::size_t column_index) const noexcept -> const vector3<T>& {
     [[assume(column_index < 3 && column_index >= 0)]];
     return mat_[column_index];
   }
 
 private:
-  Vector3<T> mat_[3];
+  vector3<T> mat_[3];
 };
 
 template<typename T>
@@ -117,7 +117,7 @@ constexpr auto operator*(const Matrix3<T>& m, const Matrix3<T>& n) noexcept -> M
 }
 
 template<typename T>
-constexpr auto operator*(const Matrix3<T>& m, const Vector3<T>& v) noexcept -> Vector3<T> {
+constexpr auto operator*(const Matrix3<T>& m, const vector3<T>& v) noexcept -> vector3<T> {
   /**
         | m00(x)   m10(x)   m20(x) |
     M = | m01(y)   m11(y)   m21(y) |
@@ -138,7 +138,7 @@ constexpr auto operator*(const Matrix3<T>& m, const Vector3<T>& v) noexcept -> V
     M x v = | mvy  |
             | mvz  |
   */
-  return Vector3<T>{
+  return vector3<T>{
     m00 * v.x + m10 * v.y + m20 * v.z, // mvx
     m01 * v.x + m11 * v.y + m21 * v.z, // mvy
     m02 * v.x + m12 * v.y + m22 * v.z  // mvz

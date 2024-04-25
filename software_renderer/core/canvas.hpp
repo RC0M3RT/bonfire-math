@@ -11,10 +11,11 @@
 namespace swr {
 
 using ColorBuffer = std::vector<std::uint32_t>;
+using ZBuffer = std::vector<float>;
 
 class Canvas {
  public:
-  explicit Canvas(const int width, const int height) : width_(width), height_(height), color_buffer_(width * height) {}
+  explicit Canvas(const int width, const int height) : width_(width), height_(height), color_buffer_(width * height), z_buffer_(width * height) {}
 
   [[nodiscard]] auto get_color_buffer() const -> const ColorBuffer& { return color_buffer_; }
 
@@ -26,6 +27,7 @@ class Canvas {
     for (std::size_t y = 0; y < height_; y++) {
       for (std::size_t x = 0; x < width_; x++) {
         color_buffer_[(width_ * y) + x] = color;
+        z_buffer_[(width_ * y) + x] = 1.0f;
       }
     }
   }
@@ -59,7 +61,7 @@ class Canvas {
   void draw_line(const int x0, const int y0, const int x1, const int y1, const std::uint32_t color) {
     // DDA line drawing algo
     const auto delta_x = x1 - x0;
-    const int delta_y = y1 - y0;
+    const auto delta_y = y1 - y0;
 
     const auto side_len = std::abs(delta_x) >= std::abs(delta_y) ? std::abs(delta_x) : std::abs(delta_y);
 
@@ -260,20 +262,20 @@ class Canvas {
     const float gamma = weights.z;
 
     // Perform the interpolation of all U and V values using barycentric weights
-    const float interpolated_u = (a.u)*alpha + (b.u)*beta + (c.u)*gamma;
-    const float interpolated_v = (a.v)*alpha + (b.v)*beta + (c.v)*gamma;
+    const float interpolated_u = (a.u) * alpha + (b.u) * beta + (c.u) * gamma;
+    const float interpolated_v = (a.v) * alpha + (b.v) * beta + (c.v) * gamma;
 
     // Map the UV coordinate to the full texture width and height
-    const int tex_x = static_cast<int>(abs(interpolated_u * static_cast<float>(texture.width)));
-    const int tex_y = static_cast<int>(abs(interpolated_v * static_cast<float>(texture.height)));
+    const int tex_x = static_cast<int>(abs(interpolated_u * static_cast<float>(texture.width))) % static_cast<int>(texture.width);
+    const int tex_y = static_cast<int>(abs(interpolated_v * static_cast<float>(texture.height))) % static_cast<int>(texture.height);
 
-    const auto idx = ((texture.width * tex_y) + tex_x) % (texture.width * texture.height);
+    const auto idx = ((texture.width * tex_y) + tex_x);
 
     draw_pixel(p.x, p.y, texture.texels[idx]);
   }
 
   static auto barycentric_weights(const Vertex2& a, const Vertex2& b, const Vertex2& c, const Vertex2& p)
-      -> bonfire::math::Vec3 {
+      -> bonfire::math::float3 {
     // Find the vectors between the vertices ABC and point p
     const auto ac = c - a;
     const auto ab = b - a;
@@ -293,13 +295,14 @@ class Canvas {
     // Weight gamma is easily found since barycentric coordinates always add up to 1.0
     const float gamma = std::abs(1.0f - alpha - beta);
 
-    return bonfire::math::Vec3{std::abs(alpha), std::abs(beta), gamma};
+    return bonfire::math::float3{std::abs(alpha), std::abs(beta), gamma};
   }
 
 private:
   int width_;
   int height_;
   ColorBuffer color_buffer_;
+  ZBuffer z_buffer_;
 };
 
 }  // namespace swr
